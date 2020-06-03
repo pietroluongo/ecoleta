@@ -119,6 +119,10 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
+# SQLite Databases
+.sqlite
+
+
 #################################################
 #            React-related stuff
 #################################################
