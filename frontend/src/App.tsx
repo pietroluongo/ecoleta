@@ -1,9 +1,11 @@
 import React from 'react';
 import './App.css';
 
+import Routes from './routes';
+
 function App() {
     return (
-        <h1>Tá funcionando! :D</h1>
+        <Routes />
     );
 }
 
