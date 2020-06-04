@@ -1,7 +1,23 @@
-import {Request, Response} from 'express';
+import {Request, Response, response} from 'express';
 import knex from '../db/connection'
 
 class PointsController {
+
+    async index(req: Request, res: Response) {
+        const { city, uf, items } = req.query;
+        const parsed_items = String(items)
+            .split(',')
+            .map(item => Number(item.trim()));
+        console.log()
+        const points = await knex('points')
+            .join('point_items', 'points.id', '=', 'point_items.point_id')
+            .whereIn('point_items.item_id', parsed_items)
+            .where('city', String(city))
+            .where('uf', String(uf))
+            .distinct()
+            .select('points.*');
+        return res.json(points);
+    }
 
     async show(req: Request, res: Response) {
         const { id } = req.params;
@@ -38,7 +54,7 @@ class PointsController {
         // executada e a outra não, o que criaria inconsistência no DB
         const trx = await knex.transaction();
 
-
+        // TODO: Remover imagem Placeholder
         const point = {
             name,
             email,
@@ -47,7 +63,7 @@ class PointsController {
             longitude,
             city,
             uf,
-            image: 'none',
+            image: 'https://images.unsplash.com/photo-1591189327425-aa5f21c7ab2b?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=20',
         };
 
         // knex.insert retorna um array de ids dos objetos inseridos. Como
@@ -66,6 +82,8 @@ class PointsController {
 
 
         await trx('point_items').insert(pointItems);
+
+        await trx.commit();
 
         return res.json({
             id: point_id,
