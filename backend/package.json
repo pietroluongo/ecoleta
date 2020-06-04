@@ -1,12 +1,13 @@
 {
   "name": "nlw",
-  "version": "1.0.0",
-  "description": "",
+  "version": "0.0.1",
+  "description": "Projeto da Next Level Week, consiste no desenvolvimento de uma aplicação para coleta e reciclagem de lixo",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "ts-node-dev src/server.ts",
-    "knex:migrate": "npx knex migrate:latest --knexfile knexfile.ts migrate:latest"
+    "dev": "ts-node-dev --ignore-watch node_modules src/server.ts",
+    "knex:migrate": "knex --knexfile knexfile.ts migrate:latest",
+    "knex:seed": "knex --knexfile knexfile.ts seed:run"
   },
   "author": "Gabriel Pietroluongo",
   "license": "ISC",
