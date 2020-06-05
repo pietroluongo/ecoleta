@@ -1,5 +1,5 @@
-import React, { useEffect, useState, ChangeEvent } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState, ChangeEvent, FormEvent } from 'react';
+import { Link, useHistory } from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
 import {Map, TileLayer, Marker} from 'react-leaflet';
 import { LeafletMouseEvent } from 'leaflet';
@@ -48,6 +48,17 @@ const CreatePoint = () => {
     // Posição inicial do mapa
     const [initial_position, set_initial_position] = useState<[number, number]>([-20.2736352, -40.3059216]);
 
+    // Estado do form
+    const [form_data, set_form_data] = useState( {
+        name: '',
+        email: '',
+        whatsapp: ''
+    });
+
+    // Itens selecionados pelo usuário
+    const [selected_items, set_selected_items] = useState<number[]>([]);
+
+    const history = useHistory();
 
     // Apenas na criação do componente - Chamada pra API interna do projeto
     useEffect(() => {
@@ -98,7 +109,43 @@ const CreatePoint = () => {
     }
 
     function handleInputChange(event: ChangeEvent<HTMLInputElement>) {
-        console.log(event);
+        const {name, value} = event.target;
+        set_form_data({...form_data, [name]: value });
+    }
+
+    function handle_select_item(id: number) {
+        // Haskell?? Hehe
+        const already_selected = selected_items.findIndex(item => item === id);
+        if(already_selected >= 0) {
+            const filtered_items = selected_items.filter(item => item !== id);
+            set_selected_items(filtered_items);
+        }
+        else {
+            set_selected_items([...selected_items, id]);
+        }
+    }
+
+    async function handle_submit(event: FormEvent) {
+        event.preventDefault();
+        const { name, email, whatsapp } = form_data;
+        const uf = selected_uf;
+        const city = selected_city;
+        const [lat, lng] = selected_position;
+        const items = selected_items;
+
+        const data = {
+            name,
+            email,
+            whatsapp,
+            uf,
+            city,
+            latitude: lat,
+            longitude: lng,
+            items
+        }
+        await api.post('points', data);
+        alert('Ponto de coleta criado!');
+        history.push('/');
     }
 
     return (
@@ -196,12 +243,16 @@ const CreatePoint = () => {
 
                     <ul className="items-grid">
                         {items.map(item => (
-                            <li key={item.id}><img src={item.image_url} alt={item.title} />
-                            <span>{item.title}</span></li>
+                            <li
+                            key={item.id}
+                            onClick={() => handle_select_item(item.id)}
+                            className={selected_items.includes(item.id) ? 'selected' : ''}>
+                                <img src={item.image_url} alt={item.title} />
+                                <span>{item.title}</span></li>
                         ))}
                     </ul>
                 </fieldset>
-                <button type="submit">
+                <button type="submit" onClick={handle_submit}>
                     Cadastrar ponto de coleta
                 </button>
             </form>
