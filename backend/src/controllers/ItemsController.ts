@@ -1,6 +1,7 @@
 import knex from '../db/connection'
 import {Request, Response} from 'express';
 
+const server_address = '192.168.0.13';
 
 class ItemsController {
 
@@ -11,7 +12,7 @@ class ItemsController {
             return {
                 id: item.id,
                 title: item.title,
-                image_url: `http://localhost:3333/uploads/${item.image}`,
+                image_url: `http://${server_address}:3333/uploads/${item.image}`,
             };
         });
 
