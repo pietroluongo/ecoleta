@@ -122,6 +122,10 @@ dist
 # SQLite 
 db.sqlite
 
+# User uploads
+backend/uploads/*.jpg
+backend/uploads/*.png
+
 
 #################################################
 #            React-related stuff
