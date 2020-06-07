@@ -1,5 +1,7 @@
 import express, { response } from 'express';
 import multer from 'multer';
+import { celebrate, Joi } from 'celebrate';
+
 
 import multerConfig from './config/multer';
 
@@ -18,7 +20,26 @@ routes.get('/', (req, res) => {
 
 routes.get('/items', itemsController.index);
 
-routes.post('/points', upload.single('image'),pointsController.create);
+routes.post('/points',
+            upload.single('image'),
+            // Considerar mover isso para outro arquivo para não poluir o arquivo de rotas
+            celebrate({
+                body: Joi.object().keys({
+                    name: Joi.string().required(),
+                    email: Joi.string().required().email(),
+                    whatsapp: Joi.string().required(),
+                    latitude: Joi.number().required(),
+                    longitude: Joi.number().required(),
+                    city: Joi.string().required(),
+                    uf: Joi.string().required().max(2),
+                    // Considerar usar .regex() abaixo
+                    items: Joi.string().required()
+                    // Imagem validada no multer
+                })
+            }, {
+                abortEarly: false
+            }),
+            pointsController.create);
 routes.get('/points', pointsController.index);
 routes.get('/points/:id', pointsController.show);
 
