@@ -3,6 +3,8 @@ import path from 'path'
 import routes from './routes';
 import cors from 'cors';
 
+import settings from './settings'
+
 const app = express();
 
 // CORS
@@ -12,4 +14,4 @@ app.use(routes);
 
 app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')));
 
-app.listen(3333);
+app.listen(settings.server_port);
