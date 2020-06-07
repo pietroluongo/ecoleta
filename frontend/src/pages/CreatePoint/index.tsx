@@ -5,8 +5,9 @@ import {Map, TileLayer, Marker} from 'react-leaflet';
 import { LeafletMouseEvent } from 'leaflet';
 import axios from 'axios';
 
-
+import settings from '../../settings';
 import api from '../../services/api'
+import Dropzone from '../../components/Dropzone';
 
 import './styles.css'
 import logo from '../../assets/logo.svg'
@@ -48,6 +49,9 @@ const CreatePoint = () => {
     // Posição inicial do mapa
     const [initial_position, set_initial_position] = useState<[number, number]>([-20.2736352, -40.3059216]);
 
+    // Imagem do upload
+    const [selected_file, set_selected_file] = useState<File>();
+
     // Estado do form
     const [form_data, set_form_data] = useState( {
         name: '',
@@ -77,7 +81,7 @@ const CreatePoint = () => {
 
     // Chamada pra API do IBGE - UF
     useEffect(() => {
-        axios.get<IBGE_UF_Response[]>('https://servicodados.ibge.gov.br/api/v1/localidades/estados').then(res => {
+        axios.get<IBGE_UF_Response[]>(settings.ibge_api_uf).then(res => {
             const uf_initials = res.data.map(uf => uf.sigla);
             set_ufs(uf_initials);
         })
@@ -87,7 +91,7 @@ const CreatePoint = () => {
     useEffect(() => {
         if(selected_uf === '0')
             return;
-        axios.get<IBGE_City_Response[]>(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${selected_uf}/municipios`)
+        axios.get<IBGE_City_Response[]>(`${settings.ibge_api_uf}/${selected_uf}/municipios`)
         .then(res => {
             const cities_names = res.data.map(city => city.nome);
             set_cities(cities_names)
@@ -127,22 +131,27 @@ const CreatePoint = () => {
 
     async function handle_submit(event: FormEvent) {
         event.preventDefault();
+
         const { name, email, whatsapp } = form_data;
         const uf = selected_uf;
         const city = selected_city;
         const [lat, lng] = selected_position;
         const items = selected_items;
 
-        const data = {
-            name,
-            email,
-            whatsapp,
-            uf,
-            city,
-            latitude: lat,
-            longitude: lng,
-            items
+        const data = new FormData();
+
+        data.append('name', name);
+        data.append('email', email);
+        data.append('whatsapp', whatsapp);
+        data.append('uf', uf);
+        data.append('city', city);
+        data.append('latitude', String(lat));
+        data.append('longitude', String(lng));
+        data.append('items', items.join(','));
+        if(selected_file) {
+            data.append('image', selected_file);
         }
+
         await api.post('points', data);
         alert('Ponto de coleta criado!');
         history.push('/');
@@ -159,6 +168,7 @@ const CreatePoint = () => {
             </header>
             <form >
                 <h1>Cadastro do <br />ponto de coleta</h1>
+                <Dropzone onFileUploaded={set_selected_file} />
                 <fieldset>
                     <legend>
                         <h2>Dados</h2>
@@ -200,7 +210,7 @@ const CreatePoint = () => {
                         <span>Selecione o endereço no mapa</span>
                     </legend>
                     <Map center={initial_position} zoom={18} onClick={handle_map_click}>
-                        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"/>
+                        <TileLayer url={settings.openStreetMap_url}/>
                     <Marker position={selected_position} />
                     </Map>
                     <div className="field-group">
